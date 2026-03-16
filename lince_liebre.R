@@ -1,19 +1,35 @@
-censo_lince <- read.csv("1_data/linx_pardinus.csv")
-censo_liebre <- read.csv("1_data/lepus_granatensis.csv")
+censo_lince <- read.csv("1_data/avistamientos_lynx.csv", sep = "\t")
+censo_liebre <- read.csv("1_data/avistamientos_lepus.csv", sep = "\t")
+censo_conejo <- read.csv("1_data/avistamientos_oryctolagus.csv", sep = "\t")
 
+unique(censo_conejo$individualCount)
+library(tidyverse)
 
 lince_avistamientos <- censo_lince |>
   summarise(
     year= year,
-    decimalLatitude=  signif(decimalLatitude, 3),
-    decimalLongitude=  signif(decimalLongitude, 2)
-  )
+    decimalLongitude= decimalLongitude,
+    decimalLatitude=  decimalLatitude
+    
+  )|>
+  drop_na()
+
+
+
+conejo_avistamientos <- censo_conejo |>
+  summarise(
+    year= year,
+    decimalLongitude= decimalLongitude,
+    decimalLatitude=  decimalLatitude
+  )|>
+  drop_na()
+
 
 liebre_avistamientos <- censo_liebre |>
   summarise(
     year= year,
-    decimalLatitude=  signif(decimalLatitude, 3),
-    decimalLongitude=  signif(decimalLongitude, 2)
+    decimalLongitude= decimalLongitude,
+    decimalLatitude=  decimalLatitude
   )|>
   drop_na()
 
@@ -58,4 +74,46 @@ ggplot(lince_liebre, aes(x = decimalLongitude, y = decimalLatitude)) +
     x = "Longitud",
     y = "Latitud"
   )
+
+
+
+
+
+
+library(sf)
+
+#coordenadas en sf
+coordlince = st_as_sf(lince_avistamientos[,3:2], coords=c("decimalLongitude","decimalLatitude"),
+                      crs=4258)
+
+coordliebre = st_as_sf(liebre_avistamientos[,3:2], coords=c("decimalLongitude","decimalLatitude"),
+                      crs=4258)
+
+
+coordconejo = st_as_sf(conejo_avistamientos[,3:2], coords=c("decimalLongitude","decimalLatitude"),
+                       crs=4258)
+
+
+liebre_avistamientos
+lince_avistamientos
+dist()
+
+plot(coordlince$geometry)
+plot(coordliebre$geometry, col="red", add=T)
+plot(coordconejo$geometry, col="blue", add=T)
+
+distancias = st_distance(coordlince,coordliebre)
+dim(distancias)
+
+# distancias[distancias>10000]=NA
+
+#Liebres a menos de 10km de cada lince
+distanciascount = apply(distancias, 1, function(x){sum(x<10000)}) 
+
+  
+  
+  
+
+
+
 
