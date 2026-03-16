@@ -9,7 +9,7 @@ liebre <- occ_search(scientificName = "Lepus granatensis")
 data_liebre <- occ_download(pred_and(
                                       pred("taxonKey", 2436790),
                                       pred("country","ES"),
-                                      pred_gte("year", 2010),
+                                      pred_gte("year", 1990),
                                       pred_lte("year", 2024),
                                       pred("hasCoordinate",TRUE)
                                       ),
@@ -30,7 +30,7 @@ lince <- occ_search(scientificName = "Lynx pardinus")
 data_linces <- occ_download(pred_and(
                                       pred("taxonKey", 2435261),
                                       pred("country","ES"),
-                                      pred_gte("year", 2010),
+                                      pred_gte("year", 1990),
                                       pred_lte("year", 2024),
                                       pred("hasCoordinate",TRUE)
                                       ),
@@ -52,7 +52,7 @@ conejo <- occ_search(scientificName = "Oryctolagus cuniculus")
 data_conejo <- occ_download(pred_and(
                               pred("taxonKey", 2436940),
                               pred("country","ES"),
-                              pred_gte("year", 2010),
+                              pred_gte("year", 1990),
                               pred_lte("year", 2024),
                               pred("hasCoordinate",TRUE)
                               ),
