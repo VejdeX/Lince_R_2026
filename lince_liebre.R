@@ -1,80 +1,62 @@
+#################################################
+##
+##      Trabajo dinámica población Lince :)
+##
+################################################
+
+library(tidyverse)
+library(ggplot2)
+library(mapSpain)
+
+# Leemos los datos ####
 censo_lince <- read.csv("1_data/avistamientos_lynx.csv", sep = "\t")
 censo_liebre <- read.csv("1_data/avistamientos_lepus.csv", sep = "\t")
 censo_conejo <- read.csv("1_data/avistamientos_oryctolagus.csv", sep = "\t")
 
-unique(censo_conejo$individualCount)
-library(tidyverse)
+#Limpieza
 
 lince_avistamientos <- censo_lince |>
-  summarise(
-    year= year,
-    decimalLongitude= decimalLongitude,
-    decimalLatitude=  decimalLatitude
-    
-  )|>
-  drop_na()
-
-
-
-conejo_avistamientos <- censo_conejo |>
-  summarise(
-    year= year,
-    decimalLongitude= decimalLongitude,
-    decimalLatitude=  decimalLatitude
-  )|>
-  drop_na()
-
-
-liebre_avistamientos <- censo_liebre |>
-  summarise(
-    year= year,
-    decimalLongitude= decimalLongitude,
-    decimalLatitude=  decimalLatitude
-  )|>
-  drop_na()
-
-
-coordenadas_liebre <- liebre_avistamientos|>
-  count(year, decimalLatitude, decimalLongitude)|>
-  rename(n_liebre = n)
-
-
-
-coordenadas_lince <- lince_avistamientos|>
+  select(year, decimalLongitude, decimalLatitude)|>
   count(year, decimalLatitude, decimalLongitude)|>
   rename(n_lince = n)
 
 
-lince_liebre <- inner_join(coordenadas_liebre, coordenadas_lince)|>
-  mutate(
-    n= pmin(n_lince,n_liebre)
-  )
-?mutate
+conejo_avistamientos <- censo_conejo |>
+  select(year, decimalLongitude, decimalLatitude)|>
+  count(year, decimalLatitude, decimalLongitude)|>
+  rename(n_conejo = n)
+
+liebre_avistamientos <- censo_liebre |>
+  select(year, decimalLongitude, decimalLatitude)|>
+  count(year, decimalLatitude, decimalLongitude)|>
+  rename(n_liebre = n)
+
+
+# lince_liebre <- inner_join(coordenadas_liebre, coordenadas_lince)|>
+#   mutate(
+#     n= pmin(n_lince,n_liebre)
+#   )
+# ?mutate
 
 #lince_liebre[is.na(lince_liebre)] <- 0
 
-ggplot(lince_liebre, aes(x=n_liebre, y=n_lince, colour = year))+
-  geom_point()+
-  theme_minimal()
-
-
-
-ggplot(lince_liebre, aes(x = decimalLongitude, y = decimalLatitude)) +
-  # Usamos puntos cuyo tamaño y color dependan del número de coincidencias
-  geom_point(aes(size = n, color = n), alpha = 0.7) +
-  # Dividimos por año
-  facet_wrap(~year) +
-  # Estética
-  scale_color_viridis_c(option = "magma") +
-  theme_minimal() +
-  labs(
-    title = "Densidad de Coincidencias Geográficas por Año",
-    size = "Nº Coincidencias",
-    color = "Intensidad",
-    x = "Longitud",
-    y = "Latitud"
-  )
-
+# 
+# ggplot(lince_liebre, aes(x = decimalLongitude, y = decimalLatitude)) +
+#   # Usamos puntos cuyo tamaño y color dependan del número de coincidencias
+#   geom_point(aes(size = n, color = n), alpha = 0.7) +
+#   # Dividimos por año
+#   facet_wrap(~year) +
+#   # Estética
+#   scale_color_viridis_c(option = "magma") +
+#   theme_minimal() +
+#   labs(
+#     title = "Densidad de Coincidencias Geográficas por Año",
+#     size = "Nº Coincidencias",
+#     color = "Intensidad",
+#     x = "Longitud",
+#     y = "Latitud"
+#   )
+# 
 
 
 
@@ -83,20 +65,20 @@ ggplot(lince_liebre, aes(x = decimalLongitude, y = decimalLatitude)) +
 library(sf)
 
 #coordenadas en sf
-coordlince = st_as_sf(lince_avistamientos[,3:2], coords=c("decimalLongitude","decimalLatitude"),
+coordlince = st_as_sf(lince_avistamientos[,2:3], coords=c("decimalLongitude","decimalLatitude"),
                       crs=4258)
 
-coordliebre = st_as_sf(liebre_avistamientos[,3:2], coords=c("decimalLongitude","decimalLatitude"),
+coordliebre = st_as_sf(liebre_avistamientos[,2:3], coords=c("decimalLongitude","decimalLatitude"),
                       crs=4258)
 
 
-coordconejo = st_as_sf(conejo_avistamientos[,3:2], coords=c("decimalLongitude","decimalLatitude"),
+coordconejo = st_as_sf(conejo_avistamientos[,2:3], coords=c("decimalLongitude","decimalLatitude"),
                        crs=4258)
 
 
 liebre_avistamientos
 lince_avistamientos
-dist()
+#dev.off()
 
 plot(coordlince$geometry)
 plot(coordliebre$geometry, col="red", add=T)
@@ -112,7 +94,7 @@ distanciascount = apply(distancias, 1, function(x){sum(x<10000)})
 
   
   
-lince_pob <- lince |>
+lince_pob <- censo_lince |>
   select(stateProvince, year, individualCount) |>
   replace_na(list(individualCount = 1)) |>
   mutate(stateProvince = na_if(stateProvince, "")) |>
@@ -124,7 +106,7 @@ lince_comunidad <- lince_pob |>
   group_by(año, comunidad) |>
   summarise(individuos_lince = sum(individualCount))
 
-liebre_pob <- liebre |>
+liebre_pob <- censo_liebre |>
   select(stateProvince, year, individualCount) |>
   replace_na(list(individualCount = 1)) |>
   mutate(stateProvince = na_if(stateProvince, "")) |>
@@ -166,6 +148,7 @@ gg_lince_liebre <- ggplot(lince_liebre, aes(x = individuos_liebre, y = individuo
 gg_lince_liebre
 modelo <- lm(individuos_liebre ~ individuos_lince, data = lince_liebre)
 summary(modelo)$r.squared
+
 
 
 
