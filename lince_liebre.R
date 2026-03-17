@@ -112,7 +112,60 @@ distanciascount = apply(distancias, 1, function(x){sum(x<10000)})
 
   
   
-  
+lince_pob <- lince |>
+  select(stateProvince, year, individualCount) |>
+  replace_na(list(individualCount = 1)) |>
+  mutate(stateProvince = na_if(stateProvince, "")) |>
+  drop_na(stateProvince) |>
+  mutate(stateProvince = if_else(stateProvince == "Huelva", "Andalucía", stateProvince)) |>
+  rename(comunidad = stateProvince, año = year)
+
+lince_comunidad <- lince_pob |>
+  group_by(año, comunidad) |>
+  summarise(individuos_lince = sum(individualCount))
+
+liebre_pob <- liebre |>
+  select(stateProvince, year, individualCount) |>
+  replace_na(list(individualCount = 1)) |>
+  mutate(stateProvince = na_if(stateProvince, "")) |>
+  drop_na(stateProvince) |>
+  mutate(stateProvince = if_else(stateProvince %in% c(
+    "Córdoba", "Almería", "Almeria", "Cádiz", "Huelva", "Jaén", 
+    "Sevilla", "Granada", "Málaga"), "Andalucía", stateProvince),
+    stateProvince = if_else(stateProvince %in% c(
+      "Albacete", "Ciudad Real", "Guadalajara", "Toledo", "Cuenca"),
+      "Castilla-La Mancha", stateProvince)) |>
+  rename(comunidad = stateProvince, año = year)
+
+liebre_comunidad <- liebre_pob |>
+  group_by(año, comunidad) |>
+  summarise(individuos_liebre = sum(individualCount))
+
+lince_liebre <- left_join (lince_comunidad, liebre_comunidad)
+
+#gráficas
+gg_lince <- ggplot(lince_comunidad, aes(x = año, y = individuos_lince, color = comunidad)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_minimal() +
+  theme(legend.position = "right")
+gg_lince
+
+gg_liebre <- ggplot(lince_liebre, aes(x = año, y = individuos_liebre, color = comunidad)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_minimal() +
+  theme(legend.position = "right")
+gg_liebre
+
+gg_lince_liebre <- ggplot(lince_liebre, aes(x = individuos_liebre, y = individuos_lince, color = año)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_minimal() +
+  theme(legend.position = "right")
+gg_lince_liebre
+modelo <- lm(individuos_liebre ~ individuos_lince, data = lince_liebre)
+summary(modelo)$r.squared
 
 
 
