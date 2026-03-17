@@ -7,6 +7,7 @@
 library(tidyverse)
 library(ggplot2)
 library(mapSpain)
+library(sf)
 
 # Leemos los datos ####
 censo_lince <- read.csv("1_data/avistamientos_lynx.csv", sep = "\t")
@@ -20,17 +21,21 @@ lince_avistamientos <- censo_lince |>
   count(year, decimalLatitude, decimalLongitude)|>
   rename(n_lince = n)
 
+lista_lince <- split(lince_avistamientos, lince_avistamientos$year)
 
 conejo_avistamientos <- censo_conejo |>
   select(year, decimalLongitude, decimalLatitude)|>
   count(year, decimalLatitude, decimalLongitude)|>
   rename(n_conejo = n)
 
+lista_conejo <- split(conejo_avistamientos, conejo_avistamientos$year)
+
 liebre_avistamientos <- censo_liebre |>
   select(year, decimalLongitude, decimalLatitude)|>
   count(year, decimalLatitude, decimalLongitude)|>
   rename(n_liebre = n)
 
+lista_liebre <- split(liebre_avistamientos, liebre_avistamientos$year)
 
 # lince_liebre <- inner_join(coordenadas_liebre, coordenadas_lince)|>
 #   mutate(
@@ -62,9 +67,8 @@ liebre_avistamientos <- censo_liebre |>
 
 
 
-library(sf)
 
-#coordenadas en sf
+#coordenadas en sf sin año
 coordlince = st_as_sf(lince_avistamientos[,2:3], coords=c("decimalLongitude","decimalLatitude"),
                       crs=4258)
 
@@ -92,38 +96,26 @@ dim(distancias)
 #Liebres a menos de 10km de cada lince
 distanciascount = apply(distancias, 1, function(x){sum(x<10000)}) 
 
-  
-  
-lince_pob <- censo_lince |>
-  select(stateProvince, year, individualCount) |>
-  replace_na(list(individualCount = 1)) |>
-  mutate(stateProvince = na_if(stateProvince, "")) |>
-  drop_na(stateProvince) |>
-  mutate(stateProvince = if_else(stateProvince == "Huelva", "Andalucía", stateProvince)) |>
-  rename(comunidad = stateProvince, año = year)
 
-lince_comunidad <- lince_pob |>
-  group_by(año, comunidad) |>
-  summarise(individuos_lince = sum(individualCount))
+#Con años
+lista_sf_lince <- lapply(lista_lince, 
+                         function(x){st_as_sf(x, coords=c("decimalLongitude","decimalLatitude"),
+                                                           crs=4258)})
 
-liebre_pob <- censo_liebre |>
-  select(stateProvince, year, individualCount) |>
-  replace_na(list(individualCount = 1)) |>
-  mutate(stateProvince = na_if(stateProvince, "")) |>
-  drop_na(stateProvince) |>
-  mutate(stateProvince = if_else(stateProvince %in% c(
-    "Córdoba", "Almería", "Almeria", "Cádiz", "Huelva", "Jaén", 
-    "Sevilla", "Granada", "Málaga"), "Andalucía", stateProvince),
-    stateProvince = if_else(stateProvince %in% c(
-      "Albacete", "Ciudad Real", "Guadalajara", "Toledo", "Cuenca"),
-      "Castilla-La Mancha", stateProvince)) |>
-  rename(comunidad = stateProvince, año = year)
+lista_sf_liebre <- lapply(lista_liebre, 
+                         function(x){st_as_sf(x, coords=c("decimalLongitude","decimalLatitude"),
+                                              crs=4258)})
+lista_sf_conejo <- lapply(lista_conejo, 
+                         function(x){st_as_sf(x, coords=c("decimalLongitude","decimalLatitude"),
+                                              crs=4258)})
 
-liebre_comunidad <- liebre_pob |>
-  group_by(año, comunidad) |>
-  summarise(individuos_liebre = sum(individualCount))
+distancias_año_linces <- lapply(lista_sf_lince ,function(x)
+  {st_distance(x)})
 
-lince_liebre <- left_join (lince_comunidad, liebre_comunidad)
+# matriz_distancias_año = lapply(lista_sf_lince ,function(matriz)
+#   x <- as.matrix(matriz),
+#   {apply(x, 1, function(y){sum(y<10000)-1})}) 
+# Probar con loop
 
 #gráficas
 gg_lince <- ggplot(lince_comunidad, aes(x = año, y = individuos_lince, color = comunidad)) +
