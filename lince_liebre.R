@@ -8,13 +8,14 @@ library(tidyverse)
 library(ggplot2)
 library(mapSpain)
 library(sf)
+library(units)
 
 # Leemos los datos ####
 censo_lince <- read.csv("1_data/avistamientos_lynx.csv", sep = "\t")
 censo_liebre <- read.csv("1_data/avistamientos_lepus.csv", sep = "\t")
 censo_conejo <- read.csv("1_data/avistamientos_oryctolagus.csv", sep = "\t")
 
-#Limpieza
+#Limpieza ####
 
 lince_avistamientos <- censo_lince |>
   select(year, decimalLongitude, decimalLatitude)|>
@@ -88,16 +89,20 @@ plot(coordlince$geometry)
 plot(coordliebre$geometry, col="red", add=T)
 plot(coordconejo$geometry, col="blue", add=T)
 
-distancias = st_distance(coordlince,coordliebre)
-dim(distancias)
+# 
+# distancias_liebre_lince = st_distance(coordlince,coordliebre)
+# distancias_conejo_lince =  st_distance(coordlince,coordconejo)
+# 
+# dim(distancias_liebre_lince)
+# dim(distancias_conejo_lince)
+# 
+# # distancias[distancias>10000]=NA
+# 
+# #Liebres a menos de 10km de cada lince
+# distanciascount = apply(distancias_liebre_lince, 1, function(x){sum(x<10000)}) 
+# 
 
-# distancias[distancias>10000]=NA
-
-#Liebres a menos de 10km de cada lince
-distanciascount = apply(distancias, 1, function(x){sum(x<10000)}) 
-
-
-#Con años
+#Con años ####
 lista_sf_lince <- lapply(lista_lince, 
                          function(x){st_as_sf(x, coords=c("decimalLongitude","decimalLatitude"),
                                                            crs=4258)})
@@ -109,13 +114,69 @@ lista_sf_conejo <- lapply(lista_conejo,
                          function(x){st_as_sf(x, coords=c("decimalLongitude","decimalLatitude"),
                                               crs=4258)})
 
+#Linces con ellos mismos
 distancias_año_linces <- lapply(lista_sf_lince ,function(x)
   {st_distance(x)})
 
-# matriz_distancias_año = lapply(lista_sf_lince ,function(matriz)
-#   x <- as.matrix(matriz),
-#   {apply(x, 1, function(y){sum(y<10000)-1})}) 
-# Probar con loop
+matriz_distancias_año = lapply(distancias_año_linces, function(x)
+  {rowSums(x< set_units(10000, "m"))-1
+  })
+
+
+#Con liebres
+años_comunes_liebre <- intersect(names(lista_sf_lince), names(lista_sf_liebre))
+
+distancias_año_liebres <- lapply(años_comunes_liebre, function(año)
+{
+  linces <- lista_sf_lince[[año]]
+  liebres <- lista_sf_liebre[[año]]
+  st_distance(linces, liebres)
+  })
+
+
+matriz_distancias_liebre = lapply(distancias_año_liebres, function(x)
+{rowSums(x< set_units(10000, "m"))
+})
+names(matriz_distancias_liebre) <- años_comunes_liebre
+
+#Con conejos
+años_comunes_conejo <- intersect(names(lista_sf_lince), names(lista_sf_conejo))
+
+distancias_año_conejo <- lapply(años_comunes_conejo, function(año)
+{
+  linces <- lista_sf_lince[[año]]
+  conejos <- lista_sf_conejo[[año]]
+  st_distance(linces, conejos)
+})
+
+
+matriz_distancias_conejo = lapply(distancias_año_conejo, function(x)
+{rowSums(x< set_units(10000, "m"))
+})
+names(matriz_distancias_conejo) <- años_comunes_conejo
+
+#Unión
+años_con_presas <- union(names(lista_sf_conejo), names(lista_sf_liebre))
+años_presas_lince <- intersect(names(lista_sf_lince), años_con_presas)
+
+distancias_finales <- lapply(años_presas_lince, function(año){
+  n_año <- length(matriz_distancias_año[[año]])
+  cercanos <- data.frame(
+  linces = matriz_distancias_año[[año]],
+  
+  liebres = if(año %in% names(matriz_distancias_liebre)) {
+    matriz_distancias_liebre[[año]] 
+  } else { rep(NA, n_año) },
+  
+  conejos = if(año %in% names(matriz_distancias_conejo)) {
+    matriz_distancias_conejo[[año]] 
+  } else { rep(NA, n_año) }
+  )
+  
+  return(cercanos)
+})
+names(distancias_finales) <- names(lista_sf_lince)
+
 
 #gráficas
 gg_lince <- ggplot(lince_comunidad, aes(x = año, y = individuos_lince, color = comunidad)) +
@@ -141,6 +202,8 @@ gg_lince_liebre
 modelo <- lm(individuos_liebre ~ individuos_lince, data = lince_liebre)
 summary(modelo)$r.squared
 
+
+ggplot(distancias_finales, aes(linces,))
 
 
 
