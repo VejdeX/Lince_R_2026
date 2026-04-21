@@ -10,6 +10,8 @@ library(mapSpain)
 library(rnaturalearth)
 library(sf)
 library(units)
+library(rnaturalearth)
+
 
 
 # Leemos los datos ####
@@ -227,6 +229,36 @@ ggplot() +
   theme(legend.title = element_text(hjust = 0.5),
         plot.title = element_text(hjust = 0.5, size = 20)) +
   coord_sf(xlim = c(-7, -1), ylim = c(36, 40))
+
+# Linces en Parques Nacionales ####
+getwd()
+setwd("1_data")
+enps <- st_read("Enp/Enp2025.shp")
+enps$geometry
+
+espana <- ne_countries(scale = "medium", country = "Spain", returnclass = "sf")
+
+dev.off()
+
+#Gráfico con los puntos normales
+plot(coordlince$geometry)
+plot(subset(enps, FIGURA_LP == "Parque Nacional"), col="blue", add= TRUE)
+plot(st_geometry(espana), add = TRUE)
+
+#Gráfico con los puntos como si fuesen linces, lo malo es que se hacen muy grandes
+plot(coordlince$geometry, pch= 10, )
+coords <- st_coordinates(coordlince)
+text(coords[,1], coords[,2], labels = "🐱")
+plot(subset(enps, FIGURA_LP == "Parque Nacional"), col="blue", add= TRUE)
+plot(st_geometry(espana),  add = TRUE)
+
+#Vemos el porcentaje de linces dentro de los parques nacionales
+ppnn <- subset(enps, FIGURA_LP == "Parque Nacional")
+dentro <- st_within(coordlince, ppnn, sparse = FALSE)
+en_parque <- rowSums(dentro) > 0
+
+porcentaje <- mean(en_parque) * 100
+porcentaje
 
 
 # lince_liebre <- inner_join(coordenadas_liebre, coordenadas_lince)|>
