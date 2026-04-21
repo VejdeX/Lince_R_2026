@@ -228,9 +228,8 @@ ggplot() +
   coord_sf(xlim = c(-7, -1), ylim = c(36, 40))
 
 
-
-
 ## Linces en Parques Nacionales ####
+#Obtenemos los datos
 getwd()
 setwd("1_data")
 enps <- st_read("Enp/Enp2025.shp")
@@ -241,24 +240,67 @@ espana <- ne_countries(scale = "medium", country = "Spain", returnclass = "sf")
 dev.off()
 
 #Gráfico con los puntos normales
-plot(coordlince$geometry)
-plot(subset(enps, FIGURA_LP == "Parque Nacional"), col="blue", add= TRUE)
-plot(st_geometry(espana), add = TRUE)
+plot(st_geometry(espana),
+     main = "Distribución de linces en áreas protegidas",
+     xlab = "Longitud", ylab = "Latitud",
+     family = "serif", font = 2,
+     xlim=c(-8, -1), ylim=c(36, 41),
+     col = "#FFFAFA",
+     axes = TRUE,
+     lwd = 2)
+grid()
+plot(coordlince$geometry, pch = 19, col = adjustcolor("black", alpha.f = 0.5), add = TRUE)
+plot(subset(enps, FIGURA_LP == "Parque Nacional"), col =  adjustcolor("red", alpha.f = 0.25), add = TRUE)
+plot(subset(enps, FIGURA_LP == "Parque Natural"), col =  adjustcolor("yellow", alpha.f = 0.25),  add= TRUE)
+
+legend("bottomleft",
+       legend = c("Parque Nacional", "Parque Naatural", "Lince"),
+       fill = c("red", "yellow", NA),
+       border = c("black", "black", NA),
+       pch = c(NA, NA, 16),
+       col = c(NA, NA, "black"))
+
+
+dev.off()
 
 #Gráfico con los puntos como si fuesen linces, lo malo es que se hacen muy grandes
-plot(coordlince$geometry, pch= 10, )
-coords <- st_coordinates(coordlince)
+coords <- st_coordinates(coordlince) #tenemos que extraer las coordenadas del lince
+
+plot(st_geometry(espana),
+     main = "Distribución de linces en áreas protegidas",
+     xlab = "Longitud", ylab = "Latitud",
+     family = "serif", font = 2,
+     xlim = c(-8, -1), ylim = c(36, 41),
+     col = "#FFFAFA",
+     axes = TRUE,
+     lwd = 2)
+grid()
+
 text(coords[,1], coords[,2], labels = "🐱")
-plot(subset(enps, FIGURA_LP == "Parque Nacional"), col="blue", add= TRUE)
-plot(st_geometry(espana),  add = TRUE)
+plot(subset(enps, FIGURA_LP == "Parque Nacional"), col =  adjustcolor("red", alpha.f = 0.25), add = TRUE)
+plot(subset(enps, FIGURA_LP == "Parque Natural"), col =  adjustcolor("yellow", alpha.f = 0.25),  add= TRUE)
 
-#Vemos el porcentaje de linces dentro de los parques nacionales
-ppnn <- subset(enps, FIGURA_LP == "Parque Nacional")
-dentro <- st_within(coordlince, ppnn, sparse = FALSE)
-en_parque <- rowSums(dentro) > 0
+legend("bottomleft",
+       legend = c("Parque Nacional", "Parque Naatural", "Lince"),
+       fill = c("red", "yellow", NA),
+       border = c("black", "black", NA),
+       pch = c(NA, NA, "🐱"),
+       col = c(NA, NA, "black"))
 
+
+
+#Vemos el porcentaje de linces dentro de los parques nacionales y naturales
+ppnn <- subset(enps, FIGURA_LP %in% c("Parque Nacional",
+                                      "Parque Natural"))
+
+st_is_valid(ppnn)
+ppnn <- st_make_valid(ppnn)
+join <- st_join(coordlince, ppnn, join = st_within)
+
+en_parque <- !is.na(join$FIGURA_LP)
 porcentaje <- mean(en_parque) * 100
 porcentaje
+
 
 
 # lince_liebre <- inner_join(coordenadas_liebre, coordenadas_lince)|>
