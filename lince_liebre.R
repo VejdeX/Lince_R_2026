@@ -158,7 +158,7 @@ portugal <- ne_countries(scale = "medium",
                          returnclass = "sf") |>
   st_crop(xmin = -10, xmax = -6, ymin = 36, ymax =43)
 
-## Linces cercanos
+## Linces cercanos ####
 mapas_linces <- lapply(names(lista_final), function(año){
   ggplot() +
     geom_sf(data = españa, fill = "white") + 
@@ -182,7 +182,7 @@ ggplot() +
         plot.title = element_text(hjust = 0.5, size = 20)) +
   coord_sf(xlim = c(-7, -1), ylim = c(36, 40))
 
-## Liebres cercanas
+## Liebres cercanas ####
 mapas_liebres <- setNames(lapply(names(lista_final), function(año){
   ggplot() +
     geom_sf(data = españa, fill = "white") + 
@@ -192,7 +192,6 @@ mapas_liebres <- setNames(lapply(names(lista_final), function(año){
     theme_minimal() + 
     labs(title = paste("Distribución de linces en", as.character(año)))
   }), names(lista_final))
-
 
 ## Recortado
 ggplot() +
@@ -206,7 +205,7 @@ ggplot() +
         plot.title = element_text(hjust = 0.5, size = 20)) +
   coord_sf(xlim = c(-7, -1), ylim = c(36, 40))
 
-## Conejos cercanos
+## Conejos cercanos ####
 mapas_conejos <- lapply(names(lista_final), function(año){
   ggplot() +
     geom_sf(data = españa, fill = "white") + 
@@ -216,7 +215,6 @@ mapas_conejos <- lapply(names(lista_final), function(año){
     theme_minimal() + 
     labs(title = paste("Distribución de linces en", as.character(año)))
 })
-
 
 ## Recortado
 ggplot() +
@@ -230,7 +228,8 @@ ggplot() +
         plot.title = element_text(hjust = 0.5, size = 20)) +
   coord_sf(xlim = c(-7, -1), ylim = c(36, 40))
 
-# Linces en Parques Nacionales ####
+
+## Linces en Parques Nacionales ####
 getwd()
 setwd("1_data")
 enps <- st_read("Enp/Enp2025.shp")
