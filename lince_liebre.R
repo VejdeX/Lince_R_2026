@@ -6,6 +6,7 @@
 
 library(tidyverse)
 library(ggplot2)
+library(patchwork)
 library(mapSpain)
 library(rnaturalearth)
 library(sf)
