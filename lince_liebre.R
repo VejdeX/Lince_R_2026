@@ -167,18 +167,21 @@ mapas_linces <- lapply(names(lista_final), function(año){
     labs(title = paste("Distribución de linces en", as.character(año)))
     })
 
-mapas_linces[[21]]
 ## Recortado
+año_mapa <- "2010"
 ggplot() +
-  geom_sf(data = españa, fill = "white") +
-  geom_sf(data = lista_final[[21]], aes(color=linces_cerca), size = 2) +
-  scale_color_viridis_c(name = "Linces a menos de 10 Km") +
+  geom_sf(data = españa, fill = "#FFFAFA") +
+  geom_sf(data = lista_final[[año_mapa]], aes(color= linces_cerca), size = 3) +
+  scale_color_viridis_c(begin = 0, end = 0.85) +
   theme_minimal() +
-  labs(title = paste("Distribución de linces en 2024")) +
+  labs(title = paste("Distribución de linces en", año_mapa),
+       color = "Linces a menos\nde 10 Km") +
+  theme(legend.position = "left", legend.title = element_text(hjust = 0.5),
+        plot.title = element_text(hjust = 0.5, size = 20)) +
   coord_sf(xlim = c(-7, -1), ylim = c(36, 40))
 
 ## Liebres cercanas
-mapas_liebres <- lapply(names(lista_final), function(año){
+mapas_liebres <- setNames(lapply(names(lista_final), function(año){
   ggplot() +
     geom_sf(data = españa, fill = "white") + 
     geom_sf(data = portugal, fill = "white") +
@@ -186,16 +189,19 @@ mapas_liebres <- lapply(names(lista_final), function(año){
     scale_color_viridis_c(name = "Liebres a menos de 10 Km") + 
     theme_minimal() + 
     labs(title = paste("Distribución de linces en", as.character(año)))
-})
+  }), names(lista_final))
 
-mapas_liebres[[21]]
+
 ## Recortado
 ggplot() +
-  geom_sf(data = españa, fill = "white") +
-  geom_sf(data = lista_final[[21]], aes(color= liebres_cerca), size = 2) +
-  scale_color_viridis_c(name = "Liebres a menos de 10 Km") +
+  geom_sf(data = españa, fill = "#FFFAFA") +
+  geom_sf(data = lista_final[[año_mapa]], aes(color= liebres_cerca), size = 1) +
+  scale_color_viridis_c(limits = c(0, 3)) +
   theme_minimal() +
-  labs(title = paste("Distribución de linces en 2024")) +
+  labs(title = paste("Distribución de linces en", año_mapa),
+       color = "Liebres a menos\nde 10 Km") +
+  theme(legend.position = "left", legend.title = element_text(hjust = 0.5),
+        plot.title = element_text(hjust = 0.5, size = 20)) +
   coord_sf(xlim = c(-7, -1), ylim = c(36, 40))
 
 ## Conejos cercanos
@@ -209,14 +215,17 @@ mapas_conejos <- lapply(names(lista_final), function(año){
     labs(title = paste("Distribución de linces en", as.character(año)))
 })
 
-mapas_conejos[[21]]
+
 ## Recortado
 ggplot() +
-  geom_sf(data = españa, fill = "white") +
-  geom_sf(data = lista_final[[21]], aes(color= conejos_cerca), size = 2) +
-  scale_color_viridis_c(name = "Conejos a menos de 10 Km") +
+  geom_sf(data = españa, fill = "#FFFAFA") +
+  geom_sf(data = lista_final[[año_mapa]], aes(color= conejos_cerca), size = 1) +
+  scale_color_viridis_c(limits = c(0, 3)) +
   theme_minimal() +
-  labs(title = paste("Distribución de linces en 2024")) +
+  labs(title = paste("Distribución de linces en", año_mapa),
+       color = "Conejos a menos\nde 10 Km") +
+  theme(legend.title = element_text(hjust = 0.5),
+        plot.title = element_text(hjust = 0.5, size = 20)) +
   coord_sf(xlim = c(-7, -1), ylim = c(36, 40))
 
 
