@@ -136,9 +136,6 @@ distancias_finales <- lapply(años_presas_lince, function(año){
                       })
 names(distancias_finales) <- names(lista_sf_lince)
 
-ggplot(distancias_finales, aes(linces,))
-
-
 ## Lista con coordenadas e individuos a menos de 10 Km
 lista_final <- setNames(lapply(names(lista_sf_lince), function(año){
   lista_sf_lince[[año]]$linces_cerca <- distancias_finales[[año]]$linces
@@ -227,6 +224,8 @@ ggplot() +
   theme(legend.title = element_text(hjust = 0.5),
         plot.title = element_text(hjust = 0.5, size = 20)) +
   coord_sf(xlim = c(-7, -1), ylim = c(36, 40))
+
+
 
 
 ## Linces en Parques Nacionales ####
