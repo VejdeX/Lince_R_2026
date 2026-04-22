@@ -257,7 +257,7 @@ plot(subset(enps, FIGURA_LP == "Parque Nacional"), col =  adjustcolor("red", alp
 plot(subset(enps, FIGURA_LP == "Parque Natural"), col =  adjustcolor("yellow", alpha.f = 0.25),  add= TRUE)
 
 legend("bottomleft",
-       legend = c("Parque Nacional", "Parque Naatural", "Lince"),
+       legend = c("Parque Nacional", "Parque Natural", "Lince"),
        fill = c("red", "yellow", NA),
        border = c("black", "black", NA),
        pch = c(NA, NA, 16),
@@ -284,7 +284,7 @@ plot(subset(enps, FIGURA_LP == "Parque Nacional"), col =  adjustcolor("red", alp
 plot(subset(enps, FIGURA_LP == "Parque Natural"), col =  adjustcolor("yellow", alpha.f = 0.25),  add= TRUE)
 
 legend("bottomleft",
-       legend = c("Parque Nacional", "Parque Naatural", "Lince"),
+       legend = c("Parque Nacional", "Parque Natural", "Lince"),
        fill = c("red", "yellow", NA),
        border = c("black", "black", NA),
        pch = c(NA, NA, "🐱"),
