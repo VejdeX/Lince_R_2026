@@ -47,10 +47,13 @@ liebre_avistamientos <- censo_liebre |>
 
 lista_liebre <- split(liebre_avistamientos, liebre_avistamientos$year)
 
+lince_avistamientos2 <- subset(lince_avistamientos, year != 2007)
 
 # Coordenadas en sf sin año ####
 ## Lince ####
 coordlince = st_as_sf(lince_avistamientos[,2:3], coords=c("decimalLongitude","decimalLatitude"),
+                      crs=4258)
+coordlince2 = st_as_sf(lince_avistamientos2[,2:3], coords=c("decimalLongitude","decimalLatitude"),
                       crs=4258)
 
 ## Conejo ####
@@ -249,7 +252,7 @@ plot(st_geometry(espana),
      axes = TRUE,
      lwd = 2)
 grid()
-plot(coordlince$geometry, pch = 19, col = adjustcolor("black", alpha.f = 0.5), add = TRUE)
+plot(coordlince2$geometry, pch = 19, col = adjustcolor("black", alpha.f = 0.5), add = TRUE)
 plot(subset(enps, FIGURA_LP == "Parque Nacional"), col =  adjustcolor("red", alpha.f = 0.25), add = TRUE)
 plot(subset(enps, FIGURA_LP == "Parque Natural"), col =  adjustcolor("yellow", alpha.f = 0.25),  add= TRUE)
 
@@ -264,7 +267,7 @@ legend("bottomleft",
 dev.off()
 
 #Gráfico con los puntos como si fuesen linces, lo malo es que se hacen muy grandes
-coords <- st_coordinates(coordlince) #tenemos que extraer las coordenadas del lince
+coords <- st_coordinates(coordlince2) #tenemos que extraer las coordenadas del lince
 
 plot(st_geometry(espana),
      main = "Distribución de linces en áreas protegidas",
@@ -295,7 +298,7 @@ ppnn <- subset(enps, FIGURA_LP %in% c("Parque Nacional",
 
 st_is_valid(ppnn)
 ppnn <- st_make_valid(ppnn)
-join <- st_join(coordlince, ppnn, join = st_within)
+join <- st_join(coordlince2, ppnn, join = st_within)
 
 en_parque <- !is.na(join$FIGURA_LP)
 porcentaje <- mean(en_parque) * 100
