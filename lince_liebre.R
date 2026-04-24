@@ -142,13 +142,21 @@ distancias_finales <- lapply(años_presas_lince, function(año){
 names(distancias_finales) <- names(lista_sf_lince)
 
 ## Lista con coordenadas e individuos a menos de 10 Km
-lista_final <- setNames(lapply(names(lista_sf_lince), function(año){
+lista_final_años <- setNames(lapply(names(lista_sf_lince), function(año){
   lista_sf_lince[[año]]$linces_cerca <- distancias_finales[[año]]$linces
   lista_sf_lince[[año]]$liebres_cerca <- distancias_finales[[año]]$liebres
   lista_sf_lince[[año]]$conejos_cerca <- distancias_finales[[año]]$conejos
   return(lista_sf_lince[[año]])
 }), names(lista_sf_lince))
 
+intervalos <- list("2007-2012" = as.character(c(2007:2012)),
+                   "2013-2018" = as.character(c(2013:2018)),
+                   "2019-2024" = as.character(c(2019:2024)))
+
+lista_final_intervalos <- lapply(intervalos, function(años){
+  datos <- do.call(rbind, lista_final_años[años])
+  return(datos)
+})
 
 # Mapas ####
 ## Mapa de España

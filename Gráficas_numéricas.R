@@ -1,9 +1,9 @@
-#Necesarios los datos de lista_final y librerías del script principal
+#Necesarios los datos de lista_final_años y librerías del script principal
 #Liebre
 
-lista_gráficos_liebre <-  lapply(names(lista_final), function(año){
-  ggplot(lista_final[[año]], aes(linces_cerca))+
-    geom_point(aes(y=liebres_cerca), col= "red", alpha= 0.3)+
+lista_gráficos_liebre <-  lapply(names(lista_final_años), function(año){
+  ggplot(lista_final_años[[año]], aes(liebres_cerca))+
+    geom_point(aes(y=linces_cerca), col= "red", alpha= 0.3)+
     scale_y_continuous(
       breaks = function(x) {
         max_val <- max(x, na.rm = TRUE)
@@ -30,20 +30,20 @@ lista_gráficos_liebre <-  lapply(names(lista_final), function(año){
     )+
     theme_minimal()+
     labs(title =as.character(año),
-         x= "linces cerca",
-         y= "presas cerca")
+         x= "Liebres",
+         y= "Linces")
 })
 
 wrap_plots(lista_gráficos_liebre, nrow = 3)+
   plot_annotation(
-    title = "Liebres cercanas a cada lince",
+    title = "Ocurrencias de linces a menos de 10km",
     theme = theme(plot.title = element_text(size = 18, hjust = 0.5))
   )
 
 #Conejo
-lista_gráficos_conejo <-  lapply(names(lista_final), function(año){
-  ggplot(lista_final[[año]], aes(linces_cerca))+
-    geom_point(aes(y=conejos_cerca), col= "blue", alpha= 0.3)+
+lista_gráficos_conejo <-  lapply(names(lista_final_años), function(año){
+  ggplot(lista_final_años[[año]], aes(conejos_cerca))+
+    geom_point(aes(y=linces_cerca), col= "blue", alpha= 0.3)+
     scale_y_continuous(
       breaks = function(x) {
         max_val <- max(x, na.rm = TRUE)
@@ -70,12 +70,12 @@ lista_gráficos_conejo <-  lapply(names(lista_final), function(año){
     )+
     theme_minimal()+
     labs(title =as.character(año),
-         x= "linces cerca",
-         y= "presas cerca")
+         x= "Conejos",
+         y= "Linces")
 })
 
 wrap_plots(lista_gráficos_conejo, nrow = 3)+
   plot_annotation(
-    title = "Conejos cercanos a cada lince",
+    title = "Ocurrencias de linces a menos de 10km",
     theme = theme(plot.title = element_text(size = 18, hjust = 0.5))
   )
