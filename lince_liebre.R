@@ -27,7 +27,8 @@ censo_conejo <- read.csv("1_data/avistamientos_oryctolagus.csv", sep = "\t")
 lince_avistamientos <- censo_lince |>
                         select(year, decimalLongitude, decimalLatitude)|>
                         count(year, decimalLatitude, decimalLongitude)|>
-                        rename(n_lince = n)
+                        rename(n_lince = n) |>
+                        subset(year != 2007)
 
 lista_lince <- split(lince_avistamientos, lince_avistamientos$year)
 
@@ -47,13 +48,9 @@ liebre_avistamientos <- censo_liebre |>
 
 lista_liebre <- split(liebre_avistamientos, liebre_avistamientos$year)
 
-lince_avistamientos2 <- subset(lince_avistamientos, year != 2007)
-
 # Coordenadas en sf sin año ####
 ## Lince ####
 coordlince = st_as_sf(lince_avistamientos[,2:3], coords=c("decimalLongitude","decimalLatitude"),
-                      crs=4258)
-coordlince2 = st_as_sf(lince_avistamientos2[,2:3], coords=c("decimalLongitude","decimalLatitude"),
                       crs=4258)
 
 ## Conejo ####
@@ -149,14 +146,24 @@ lista_final_años <- setNames(lapply(names(lista_sf_lince), function(año){
   return(lista_sf_lince[[año]])
 }), names(lista_sf_lince))
 
-intervalos <- list("2007-2012" = as.character(c(2007:2012)),
-                   "2013-2018" = as.character(c(2013:2018)),
-                   "2019-2024" = as.character(c(2019:2024)))
+intervalos <- list("2008-2013" = as.character(c(2008:2013)),
+                   "2014-2019" = as.character(c(2014:2019)),
+                   "2020-2024" = as.character(c(2020:2024)))
 
 lista_final_intervalos <- lapply(intervalos, function(años){
   datos <- do.call(rbind, lista_final_años[años])
   return(datos)
 })
+
+lista_liebre_intervalos <- lapply(intervalos, function(año){
+                            datos <- do.call(rbind, lista_sf_liebre[año])
+                            return(datos)
+                            })
+
+lista_conejo_intervalos <- lapply(intervalos, function(año){
+                            datos <- do.call(rbind, lista_sf_conejo[año])
+                            return(datos)
+                            })
 
 # Mapas ####
 ## Mapa de España
@@ -168,36 +175,59 @@ portugal <- ne_countries(scale = "medium",
                          returnclass = "sf") |>
   st_crop(xmin = -10, xmax = -6, ymin = 36, ymax =43)
 
-## Linces cercanos ####
-mapas_linces <- lapply(names(lista_final), function(año){
-  ggplot() +
-    geom_sf(data = españa, fill = "white") + 
-    geom_sf(data = portugal, fill = "white") +
-    geom_sf(data = lista_final[[año]], aes(color=linces_cerca), size = 2) +
-    scale_color_viridis_c(name = "Linces a menos de 10 Km") + 
-    theme_minimal() + 
-    labs(title = paste("Distribución de linces en", as.character(año)))
-    })
+## Distribución linces ####
+mapas_linces <- lapply(names(lista_final_intervalos), function(año){
+                ggplot() +
+                  geom_sf(data = españa, fill = "#FFFAFA") + 
+                  geom_sf(data = portugal, fill = "#FFFAFA") +
+                  geom_sf(data = lista_final_intervalos[[año]], size = 1, color = "lightblue") +
+                  theme_minimal() + 
+                  labs(title = "Linces") +
+                  theme(plot.title = element_text(hjust = 0.5, size = 15))
+                })
 
-## Recortado
-año_mapa <- "2010"
-ggplot() +
-  geom_sf(data = españa, fill = "#FFFAFA") +
-  geom_sf(data = lista_final[[año_mapa]], aes(color= linces_cerca), size = 3) +
-  scale_color_viridis_c(begin = 0, end = 0.85) +
-  theme_minimal() +
-  labs(title = paste("Distribución de linces en", año_mapa),
-       color = "Linces a menos\nde 10 Km") +
-  theme(legend.position = "left", legend.title = element_text(hjust = 0.5),
-        plot.title = element_text(hjust = 0.5, size = 20)) +
-  coord_sf(xlim = c(-7, -1), ylim = c(36, 40))
+# Distribución liebre ####
+mapas_liebres <- lapply(names(lista_liebre_intervalos), function(año){
+                ggplot() +
+                  geom_sf(data = españa, fill = "#FFFAFA") + 
+                  geom_sf(data = portugal, fill = "#FFFAFA") +
+                  geom_sf(data = lista_liebre_intervalos[[año]], size = 1, color = "lightblue") +
+                  theme_minimal() + 
+                  labs(title = "Liebres") +
+                  theme(plot.title = element_text(hjust = 0.5, size = 15))
+                })
+
+# Distribución conejos ####
+mapas_conejos <- lapply(names(lista_conejo_intervalos), function(año){
+                  ggplot() +
+                    geom_sf(data = españa, fill = "#FFFAFA") + 
+                    geom_sf(data = portugal, fill = "#FFFAFA") +
+                    geom_sf(data = lista_conejo_intervalos[[año]], size = 1, color = "lightblue") +
+                    theme_minimal() + 
+                    labs(title = "Conejos") +
+                    coord_sf(xlim = c(-13, 5), ylim = c(35, 45)) +
+                    theme(plot.title = element_text(hjust = 0.5, size = 15))
+                })
+
+(mapas_conejos[[1]] + mapas_liebres[[1]]) / mapas_linces[[1]] + plot_layout(heights = c(1, 1)) +
+  plot_annotation(title = "Distribución en 2008-2013",
+    theme = theme(plot.title = element_text(size = 18, hjust = 0.5))
+  )
+(mapas_conejos[[2]] + mapas_liebres[[2]]) / mapas_linces[[2]] + plot_layout(heights = c(1, 1)) +
+  plot_annotation(title = "Distribución en 2014-2018",
+                  theme = theme(plot.title = element_text(size = 18, hjust = 0.5))
+                  )
+(mapas_conejos[[3]] + mapas_liebres[[3]]) / mapas_linces[[3]] + plot_layout(heights = c(1, 1)) +
+  plot_annotation(title = "Distribución en 2019-2024",
+                  theme = theme(plot.title = element_text(size = 18, hjust = 0.5))
+                  )
 
 ## Liebres cercanas ####
 mapas_liebres <- setNames(lapply(names(lista_final), function(año){
   ggplot() +
     geom_sf(data = españa, fill = "white") + 
     geom_sf(data = portugal, fill = "white") +
-    geom_sf(data = lista_final[[año]], aes(color=liebres_cerca), size = 2) +
+    geom_sf(data = lista_final_intervalos[[año]], aes(color=liebres_cerca), size = 2) +
     scale_color_viridis_c(name = "Liebres a menos de 10 Km") + 
     theme_minimal() + 
     labs(title = paste("Distribución de linces en", as.character(año)))
@@ -206,21 +236,20 @@ mapas_liebres <- setNames(lapply(names(lista_final), function(año){
 ## Recortado
 ggplot() +
   geom_sf(data = españa, fill = "#FFFAFA") +
-  geom_sf(data = lista_final[[año_mapa]], aes(color= liebres_cerca), size = 1) +
+  geom_sf(data = lista_final_años[[año_mapa]], aes(color= liebres_cerca), size = 1) +
   scale_color_viridis_c(limits = c(0, 3)) +
   theme_minimal() +
   labs(title = paste("Distribución de linces en", año_mapa),
        color = "Liebres a menos\nde 10 Km") +
   theme(legend.position = "left", legend.title = element_text(hjust = 0.5),
-        plot.title = element_text(hjust = 0.5, size = 20)) +
-  coord_sf(xlim = c(-7, -1), ylim = c(36, 40))
+        plot.title = element_text(hjust = 0.5, size = 20))
 
 ## Conejos cercanos ####
 mapas_conejos <- lapply(names(lista_final), function(año){
   ggplot() +
     geom_sf(data = españa, fill = "white") + 
     geom_sf(data = portugal, fill = "white") +
-    geom_sf(data = lista_final[[año]], aes(color=conejos_cerca), size = 2) +
+    geom_sf(data = lista_final_intervalos[[año]], aes(color=conejos_cerca), size = 2) +
     scale_color_viridis_c(name = "Conejos a menos de 10 Km") + 
     theme_minimal() + 
     labs(title = paste("Distribución de linces en", as.character(año)))
@@ -229,7 +258,7 @@ mapas_conejos <- lapply(names(lista_final), function(año){
 ## Recortado
 ggplot() +
   geom_sf(data = españa, fill = "#FFFAFA") +
-  geom_sf(data = lista_final[[año_mapa]], aes(color= conejos_cerca), size = 1) +
+  geom_sf(data = lista_final_años[[año_mapa]], aes(color= conejos_cerca), size = 1) +
   scale_color_viridis_c(limits = c(0, 3)) +
   theme_minimal() +
   labs(title = paste("Distribución de linces en", año_mapa),
@@ -260,7 +289,7 @@ plot(st_geometry(espana),
      axes = TRUE,
      lwd = 2)
 grid()
-plot(coordlince2$geometry, pch = 19, col = adjustcolor("black", alpha.f = 0.5), add = TRUE)
+plot(coordlince$geometry, pch = 19, col = adjustcolor("black", alpha.f = 0.5), add = TRUE)
 plot(subset(enps, FIGURA_LP == "Parque Nacional"), col =  adjustcolor("red", alpha.f = 0.25), add = TRUE)
 plot(subset(enps, FIGURA_LP == "Parque Natural"), col =  adjustcolor("yellow", alpha.f = 0.25),  add= TRUE)
 
@@ -275,7 +304,7 @@ legend("bottomleft",
 dev.off()
 
 #Gráfico con los puntos como si fuesen linces, lo malo es que se hacen muy grandes
-coords <- st_coordinates(coordlince2) #tenemos que extraer las coordenadas del lince
+coords <- st_coordinates(coordlince) #tenemos que extraer las coordenadas del lince
 
 plot(st_geometry(espana),
      main = "Distribución de linces en áreas protegidas",
@@ -306,7 +335,7 @@ ppnn <- subset(enps, FIGURA_LP %in% c("Parque Nacional",
 
 st_is_valid(ppnn)
 ppnn <- st_make_valid(ppnn)
-join <- st_join(coordlince2, ppnn, join = st_within)
+join <- st_join(coordlince, ppnn, join = st_within)
 
 en_parque <- !is.na(join$FIGURA_LP)
 porcentaje <- mean(en_parque) * 100
