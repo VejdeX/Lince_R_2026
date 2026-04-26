@@ -289,7 +289,7 @@ ggplot(interv, aes (x= conejos_cerca, fill=protegido)) +
   geom_histogram(position="identity", alpha = 0.5, binds =20) +
   scale_fill_manual(values = c("grey40", "darkgreen"),
                     labels = c("No protegido", "Protegido"),
-                    name = "Área protegida") +
+                    name = "Situación") +
   theme_minimal() +
   labs(title = "Conejos cerca de linces",
        x = "Conejos < 10 km", y = "Frecuencia")
@@ -299,7 +299,7 @@ ggplot(interv, aes (x= conejos_cerca, fill=protegido)) +
   geom_density(position="identity", alpha = 0.5) +
   scale_fill_manual(values = c("grey40", "darkgreen"),
                     labels = c("No protegido", "Protegido"),
-                    name = "Área protegida") +
+                    name = "Situación") +
   theme_minimal() +
   labs(title = "Conejos cerca de linces",
        x = "Conejos < 10 km", y = "Frecuencia")
