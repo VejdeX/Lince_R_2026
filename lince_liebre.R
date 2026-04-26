@@ -15,6 +15,7 @@ library(units)
 library(rnaturalearth)
 
 setwd("1_data")
+
 # Leemos los datos ####
 censo_lince <- read.csv("avistamientos_lynx.csv", sep = "\t")
 censo_liebre <- read.csv("avistamientos_lepus.csv", sep = "\t")
@@ -30,6 +31,7 @@ lince_avistamientos <- censo_lince |>
                         subset(year != 2007)
 
 lista_lince <- split(lince_avistamientos, lince_avistamientos$year)
+
 #Quitamos los años redundantes
 lista_lince <- lapply(lista_lince, function(año){
   año$year <- NULL
@@ -299,6 +301,9 @@ plot(coordlince$geometry, pch = 19, col = adjustcolor("black", alpha.f = 0.5), a
 plot(subset(enps, FIGURA_LP == "Parque Nacional"), col =  adjustcolor("red", alpha.f = 0.25), add = TRUE)
 plot(subset(enps, FIGURA_LP == "Parque Natural"), col =  adjustcolor("yellow", alpha.f = 0.25),  add= TRUE)
 
+text(x = 2, y = 36.3,
+     labels = paste0(round(porcentaje, 1), "% en áreas protegidas"),
+     adj = c(1,1), cex = 0.9, font = 2)
 legend("bottomleft",
        legend = c("Parque Nacional", "Parque Natural", "Lince"),
        fill = c("red", "yellow", NA),
@@ -353,6 +358,26 @@ en_parque <- !is.na(join$FIGURA_LP)
 porcentaje <- mean(en_parque) * 100
 porcentaje
 
+#Porcentaje de otra forma porque el de arriba me da error
+library(dplyr)
+
+sf_20 <- do.call(rbind, lista_sf_20)
+
+join <- st_join(sf_20, ppnn, join = st_within)
+
+en_parque <- !is.na(join$FIGURA_LP)
+porcentaje <- mean(en_parque) * 100
+porcentaje
+
+#Porcentajes haciendo el join por año
+joins <- lapply(lista_sf_20, function(x) {
+  st_join(x, ppnn, join = st_within)
+})
+
+porcentajes <- sapply(joins, function(j) {
+  mean(!is.na(j$FIGURA_LP)) * 100})
+
+porcentajes
 
 # lince_liebre <- inner_join(coordenadas_liebre, coordenadas_lince)|>
 #   mutate(
