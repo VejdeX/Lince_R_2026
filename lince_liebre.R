@@ -275,6 +275,47 @@ ggplot() +
         plot.title = element_text(hjust = 0.5, size = 20)) +
   coord_sf(xlim = c(-7, -1), ylim = c(36, 40))
 
+# Histogramas de linces dentro y fuera de los parques ####
+ppnn
+coordlince_join <- st_join(coordlince, ppnn, join = st_within)
+coordlince_join$protegido <- !is.na(coordlince_join$FIGURA_LP)
+
+interv <- do.call(rbind, lista_final_intervalos)
+interv <- st_join(interv, ppnn, join = st_within)
+interv$protegido <- !is.na(interv$FIGURA_LP)
+
+#Histograma conejos
+ggplot(interv, aes (x= conejos_cerca, fill=protegido)) +
+  geom_histogram(position="identity", alpha = 0.5, binds =20) +
+  scale_fill_manual(values = c("grey40", "darkgreen"),
+                    labels = c("No protegido", "Protegido"),
+                    name = "Área protegida") +
+  theme_minimal() +
+  labs(title = "Conejos cerca de linces",
+       x = "Conejos < 10 km", y = "Frecuencia")
+
+#Con geom density
+ggplot(interv, aes (x= conejos_cerca, fill=protegido)) +
+  geom_density(position="identity", alpha = 0.5) +
+  scale_fill_manual(values = c("grey40", "darkgreen"),
+                    labels = c("No protegido", "Protegido"),
+                    name = "Área protegida") +
+  theme_minimal() +
+  labs(title = "Conejos cerca de linces",
+       x = "Conejos < 10 km", y = "Frecuencia")
+
+
+#Histograma liebres
+ggplot(interv, aes(x = liebres_cerca, fill = protegido)) +
+  geom_histogram(position = "identity", alpha = 0.5, bins = 20) +
+  scale_fill_manual(values = c("grey40", "darkgreen"),
+                    labels = c("No protegido", "Protegido"),
+                    name = "Área protegida") +
+  #  scale_x_log10() + No sé si con esto se vería mejor o no
+  theme_minimal() +
+  labs(title = "Liebres cerca de linces",
+       x = "Liebres < 10 km", y = "Frecuencia")
+
 
 ## Linces en Parques Nacionales ####
 #Obtenemos los datos
