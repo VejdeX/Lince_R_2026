@@ -359,8 +359,6 @@ porcentaje <- mean(en_parque) * 100
 porcentaje
 
 #Porcentaje de otra forma porque el de arriba me da error
-library(dplyr)
-
 sf_20 <- do.call(rbind, lista_sf_20)
 
 join <- st_join(sf_20, ppnn, join = st_within)
