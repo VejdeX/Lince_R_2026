@@ -14,12 +14,11 @@ library(sf)
 library(units)
 library(rnaturalearth)
 
-
-
+setwd("1_data")
 # Leemos los datos ####
-censo_lince <- read.csv("1_data/avistamientos_lynx.csv", sep = "\t")
-censo_liebre <- read.csv("1_data/avistamientos_lepus.csv", sep = "\t")
-censo_conejo <- read.csv("1_data/avistamientos_oryctolagus.csv", sep = "\t")
+censo_lince <- read.csv("avistamientos_lynx.csv", sep = "\t")
+censo_liebre <- read.csv("avistamientos_lepus.csv", sep = "\t")
+censo_conejo <- read.csv("avistamientos_oryctolagus.csv", sep = "\t")
 
 
 # Limpiamos los datos #####
@@ -31,6 +30,11 @@ lince_avistamientos <- censo_lince |>
                         subset(year != 2007)
 
 lista_lince <- split(lince_avistamientos, lince_avistamientos$year)
+#Quitamos los años redundantes
+lista_lince <- lapply(lista_lince, function(año){
+  año$year <- NULL
+  return(año)
+})
 
 ## Conejo ####
 conejo_avistamientos <- censo_conejo |>
@@ -149,6 +153,8 @@ lista_final_años <- setNames(lapply(names(lista_sf_lince), function(año){
 intervalos <- list("2008-2013" = as.character(c(2008:2013)),
                    "2014-2019" = as.character(c(2014:2019)),
                    "2020-2024" = as.character(c(2020:2024)))
+#Ultimo intervalo para postriores análisis
+años_20 <- as.character(c(2020:2024))
 
 lista_final_intervalos <- lapply(intervalos, function(años){
   datos <- do.call(rbind, lista_final_años[años])
@@ -223,7 +229,7 @@ mapas_conejos <- lapply(names(lista_conejo_intervalos), function(año){
                   )
 
 ## Liebres cercanas ####
-mapas_liebres <- setNames(lapply(names(lista_final), function(año){
+mapas_liebres <- setNames(lapply(names(lista_final_intervalos), function(año){
   ggplot() +
     geom_sf(data = españa, fill = "white") + 
     geom_sf(data = portugal, fill = "white") +
@@ -231,7 +237,7 @@ mapas_liebres <- setNames(lapply(names(lista_final), function(año){
     scale_color_viridis_c(name = "Liebres a menos de 10 Km") + 
     theme_minimal() + 
     labs(title = paste("Distribución de linces en", as.character(año)))
-  }), names(lista_final))
+  }), names(lista_final_intervalos))
 
 ## Recortado
 ggplot() +
@@ -245,7 +251,7 @@ ggplot() +
         plot.title = element_text(hjust = 0.5, size = 20))
 
 ## Conejos cercanos ####
-mapas_conejos <- lapply(names(lista_final), function(año){
+mapas_conejos <- lapply(names(lista_final_intervalos), function(año){
   ggplot() +
     geom_sf(data = españa, fill = "white") + 
     geom_sf(data = portugal, fill = "white") +
@@ -258,7 +264,7 @@ mapas_conejos <- lapply(names(lista_final), function(año){
 ## Recortado
 ggplot() +
   geom_sf(data = españa, fill = "#FFFAFA") +
-  geom_sf(data = lista_final_años[[año_mapa]], aes(color= conejos_cerca), size = 1) +
+  geom_sf(data = lista_final_intervalos[[año_mapa]], aes(color= conejos_cerca), size = 1) +
   scale_color_viridis_c(limits = c(0, 3)) +
   theme_minimal() +
   labs(title = paste("Distribución de linces en", año_mapa),
@@ -335,12 +341,17 @@ ppnn <- subset(enps, FIGURA_LP %in% c("Parque Nacional",
 
 st_is_valid(ppnn)
 ppnn <- st_make_valid(ppnn)
-join <- st_join(coordlince, ppnn, join = st_within)
+
+lista_sf_20 <- setNames(lapply(años_20, function(años){
+  datos <- do.call(rbind, lista_sf_lince[años])
+  return(datos)
+}),años_20)
+
+join <- st_join(lista_sf_20, ppnn, join = st_within)
 
 en_parque <- !is.na(join$FIGURA_LP)
 porcentaje <- mean(en_parque) * 100
 porcentaje
-
 
 
 # lince_liebre <- inner_join(coordenadas_liebre, coordenadas_lince)|>

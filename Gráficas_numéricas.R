@@ -43,7 +43,6 @@ wrap_plots(lista_gráficos_liebre_intervalos, nrow = 3)+
 
 
 #Años 20
-años_20 <- as.character(c(2020:2024))
 
 lista_gráficos_liebre_años <-  lapply(años_20, function(año){
     ggplot(lista_final_años[[año]], aes(liebres_cerca))+
