@@ -275,54 +275,19 @@ ggplot() +
         plot.title = element_text(hjust = 0.5, size = 20)) +
   coord_sf(xlim = c(-7, -1), ylim = c(36, 40))
 
-# Histogramas de linces dentro y fuera de los parques ####
-ppnn
-coordlince_join <- st_join(coordlince, ppnn, join = st_within)
-coordlince_join$protegido <- !is.na(coordlince_join$FIGURA_LP)
 
-interv <- do.call(rbind, lista_final_intervalos)
-interv <- st_join(interv, ppnn, join = st_within)
-interv$protegido <- !is.na(interv$FIGURA_LP)
-
-#Histograma conejos
-ggplot(interv, aes (x= conejos_cerca, fill=protegido)) +
-  geom_histogram(position="identity", alpha = 0.5, binds =20) +
-  scale_fill_manual(values = c("grey40", "darkgreen"),
-                    labels = c("No protegido", "Protegido"),
-                    name = "Situación") +
-  theme_minimal() +
-  labs(title = "Conejos cerca de linces",
-       x = "Conejos < 10 km", y = "Frecuencia")
-
-#Con geom density
-ggplot(interv, aes (x= conejos_cerca, fill=protegido)) +
-  geom_density(position="identity", alpha = 0.5) +
-  scale_fill_manual(values = c("grey40", "darkgreen"),
-                    labels = c("No protegido", "Protegido"),
-                    name = "Situación") +
-  theme_minimal() +
-  labs(title = "Conejos cerca de linces",
-       x = "Conejos < 10 km", y = "Frecuencia")
-
-
-#Histograma liebres
-ggplot(interv, aes(x = liebres_cerca, fill = protegido)) +
-  geom_histogram(position = "identity", alpha = 0.5, bins = 20) +
-  scale_fill_manual(values = c("grey40", "darkgreen"),
-                    labels = c("No protegido", "Protegido"),
-                    name = "Área protegida") +
-  #  scale_x_log10() + No sé si con esto se vería mejor o no
-  theme_minimal() +
-  labs(title = "Liebres cerca de linces",
-       x = "Liebres < 10 km", y = "Frecuencia")
+#Definir Parques naturales 
+enps <- st_read("Enp/Enp2025.shp")
+enps$geometry
+ppnn <- subset(enps, FIGURA_LP %in% c("Parque Nacional",
+                                      "Parque Natural"))
 
 
 ## Linces en Parques Nacionales ####
 #Obtenemos los datos
 getwd()
-setwd("1_data")
-enps <- st_read("Enp/Enp2025.shp")
-enps$geometry
+
+
 
 espana <- ne_countries(scale = "medium", country = "Spain", returnclass = "sf")
 
@@ -382,8 +347,6 @@ legend("bottomleft",
 
 
 #Vemos el porcentaje de linces dentro de los parques nacionales y naturales
-ppnn <- subset(enps, FIGURA_LP %in% c("Parque Nacional",
-                                      "Parque Natural"))
 
 st_is_valid(ppnn)
 ppnn <- st_make_valid(ppnn)
@@ -417,6 +380,50 @@ porcentajes <- sapply(joins, function(j) {
   mean(!is.na(j$FIGURA_LP)) * 100})
 
 porcentajes
+
+
+
+# Histogramas de linces dentro y fuera de los parques ####
+ppnn
+coordlince_join <- st_join(coordlince, ppnn, join = st_within)
+coordlince_join$protegido <- !is.na(coordlince_join$FIGURA_LP)
+
+interv <- do.call(rbind, lista_final_intervalos)
+interv <- st_join(interv, ppnn, join = st_within)
+interv$protegido <- !is.na(interv$FIGURA_LP)
+
+#Histograma conejos
+ggplot(interv, aes (x= conejos_cerca, fill=protegido)) +
+  geom_histogram(position="identity", alpha = 0.5, binds =20) +
+  scale_fill_manual(values = c("grey40", "darkgreen"),
+                    labels = c("No protegido", "Protegido"),
+                    name = "Situación") +
+  theme_minimal() +
+  labs(title = "Conejos cerca de linces",
+       x = "Conejos < 10 km", y = "Frecuencia")
+
+#Con geom density
+ggplot(interv, aes (x= conejos_cerca, fill=protegido)) +
+  geom_density(position="identity", alpha = 0.5) +
+  scale_fill_manual(values = c("grey40", "darkgreen"),
+                    labels = c("No protegido", "Protegido"),
+                    name = "Situación") +
+  theme_minimal() +
+  labs(title = "Conejos cerca de linces",
+       x = "Conejos < 10 km", y = "Frecuencia")
+
+
+#Histograma liebres
+ggplot(interv, aes(x = liebres_cerca, fill = protegido)) +
+  geom_histogram(position = "identity", alpha = 0.5, bins = 20) +
+  scale_fill_manual(values = c("grey40", "darkgreen"),
+                    labels = c("No protegido", "Protegido"),
+                    name = "Área protegida") +
+  #  scale_x_log10() + No sé si con esto se vería mejor o no
+  theme_minimal() +
+  labs(title = "Liebres cerca de linces",
+       x = "Liebres < 10 km", y = "Frecuencia")
+
 
 # lince_liebre <- inner_join(coordenadas_liebre, coordenadas_lince)|>
 #   mutate(
